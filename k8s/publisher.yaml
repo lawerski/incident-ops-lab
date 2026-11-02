@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: incident-publisher
+  namespace: incident-ops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: incident-publisher
+  template:
+    metadata:
+      labels:
+        app: incident-publisher
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: publisher
+          image: incident-ops-lab:dev
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "app.publisher"]
+          envFrom:
+            - configMapRef:
+                name: incident-ops-config
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: incident-ops-secrets
+                  key: MONGO_URI
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]

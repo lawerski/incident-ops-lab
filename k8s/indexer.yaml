@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: incident-indexer
+  namespace: incident-ops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: incident-indexer
+  template:
+    metadata:
+      labels:
+        app: incident-indexer
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: indexer
+          image: incident-ops-lab:dev
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "app.indexer"]
+          envFrom:
+            - configMapRef:
+                name: incident-ops-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]

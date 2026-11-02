@@ -1,0 +1,2 @@
+pymongo>=4.10,<5
+confluent-kafka>=2.5,<3
